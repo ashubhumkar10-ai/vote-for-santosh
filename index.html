@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>VoteForSantosh.com - Election Voting</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="device">
+        <div class="device__top">
+            <div class="device__latch" aria-hidden="true"></div>
+            <div class="device__title">VoteForSantosh.com</div>
+            <div class="device__latch device__latch--right" aria-hidden="true"></div>
+        </div>
+        <div class="device__body">
+            <div class="labels" aria-hidden="true"></div>
+            <div class="leds" aria-hidden="true" id="led-column">
+                <!-- per-row LEDs align with rows; created by script -->
+            </div>
+            <main class="buttons" id="evm-panel">
+                <!-- Rows injected by script.js -->
+            </main>
+        </div>
+        <div class="device__bottom">
+            <div class="device__latch" aria-hidden="true"></div>
+            <div class="device__controls">
+                <button id="reset-btn" class="evm__reset" type="button" title="Reset demo">Reset</button>
+                <span class="evm__note">Press a blue button to vote (2s beep).</span>
+            </div>
+            <div class="device__latch device__latch--right" aria-hidden="true"></div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
+
+

@@ -1,0 +1,172 @@
+(function () {
+  const rows = 12; // total visible rows on the device
+  const candidates = [
+    { id: "c1", name: "Aarav Sharma", logo: "🪷", blur: true },
+    { id: "c2", name: "Diya Kapoor", logo: "🦚", blur: true },
+    { id: "c3", name: "श्री. संतोष अरविंद शेलार", logoImg: "Lotus.png" },
+    { id: "c4", name: "Neha Kulkarni", logo: "🌾", blur: true },
+    { id: "c5", name: "Ravi Menon", logo: "🛕", blur: true }
+  ];
+
+  const panel = document.getElementById("evm-panel");
+  const ledColumn = document.getElementById("led-column");
+  const resetBtn = document.getElementById("reset-btn");
+
+  // Build label slots, LEDs and buttons to align like the machine image
+  const labelHtml = [];
+  const ledHtml = [];
+  const buttonHtml = [];
+
+  for (let i = 0; i < rows; i++) {
+    const candidate = candidates[i];
+    const isBlurred = candidate ? Boolean(candidate.blur) : false;
+    const blurClass = isBlurred ? ' row-blur' : '';
+    if (candidate) {
+      const c = candidate;
+      let logoMarkup = "";
+      if (c.logoImg) {
+        logoMarkup = '<img src="' + c.logoImg + '" alt="' + c.name + ' symbol">';
+      } else {
+        logoMarkup = c.logoSvg || c.logo || "";
+      }
+      labelHtml.push(
+        '<div class="label-item' + blurClass + '">' +
+          '<span class="label-logo" aria-hidden="true">' + logoMarkup + '</span>' +
+          '<span class="label-name">' + c.name + '</span>' +
+        '</div>'
+      );
+    } else {
+      labelHtml.push('<div' + (isBlurred ? ' class="row-blur"' : '') + '></div>');
+    }
+    // LED dot
+    ledHtml.push('<div class="led' + blurClass + '" data-row="' + i + '"></div>');
+    // Button exists for first N candidate rows, else empty spacer
+    if (candidate) {
+      const c = candidate;
+      buttonHtml.push('<button class="vote-btn' + blurClass + '" type="button" data-row="' + i + '" aria-label="Vote for ' + c.name + '"></button>');
+    } else {
+      buttonHtml.push('<div' + (isBlurred ? ' class="row-blur"' : '') + ' style="height:20px"></div>');
+    }
+  }
+
+  document.querySelector('.labels').innerHTML = labelHtml.join('');
+  ledColumn.innerHTML = ledHtml.join('');
+  panel.innerHTML = buttonHtml.join('');
+
+  // Audio setup
+  let audioContext = null;
+  function getAudio() {
+    if (!audioContext) {
+      audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    return audioContext;
+  }
+
+  let busy = false;
+  const BEEP_MS = 2000;
+
+  function setButtonsDisabled(disabled) {
+    document.querySelectorAll(".vote-btn").forEach((btn) => {
+      btn.disabled = disabled;
+    });
+  }
+
+  function setRowLed(rowIndex, greenOn) {
+    const ledEl = document.querySelector('.led[data-row="' + rowIndex + '"]');
+    if (!ledEl) return;
+    // Reset all LEDs to red first
+    document.querySelectorAll('.led').forEach((l) => l.classList.remove('led--green'));
+    if (greenOn) ledEl.classList.add('led--green');
+  }
+
+  async function beep() {
+    const ctx = getAudio();
+    if (ctx.state === "suspended") {
+      try { await ctx.resume(); } catch (_) { /* noop */ }
+    }
+
+    const oscillator = ctx.createOscillator();
+    const gain = ctx.createGain();
+    oscillator.type = "square";
+    oscillator.frequency.value = 1000; // ~1kHz
+
+    // gentle attack/decay to avoid clicks
+    const now = ctx.currentTime;
+    const attack = 0.01;
+    const release = 0.05;
+    gain.gain.setValueAtTime(0.0, now);
+    gain.gain.linearRampToValueAtTime(0.25, now + attack);
+    gain.gain.setValueAtTime(0.25, now + (BEEP_MS / 1000) - release);
+    gain.gain.linearRampToValueAtTime(0.0, now + (BEEP_MS / 1000));
+
+    oscillator.connect(gain).connect(ctx.destination);
+    oscillator.start(now);
+    oscillator.stop(now + (BEEP_MS / 1000));
+
+    return new Promise((resolve) => {
+      oscillator.onended = resolve;
+    });
+  }
+
+  async function onVote(buttonEl) {
+    if (busy) return;
+    busy = true;
+    setButtonsDisabled(true);
+    const row = Number(buttonEl.getAttribute('data-row'));
+    const candidate = candidates[row];
+    
+    if (!candidate) {
+      busy = false;
+      setButtonsDisabled(false);
+      return;
+    }
+
+    setRowLed(row, true);
+
+    // Optional haptic feedback
+    if (navigator.vibrate) {
+      try { navigator.vibrate(60); } catch (_) { /* ignore */ }
+    }
+
+    // Send vote to server
+    try {
+      await fetch('/api/vote', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          candidateId: candidate.id,
+          candidateName: candidate.name
+        })
+      });
+    } catch (err) {
+      console.error('Failed to record vote:', err);
+    }
+
+    await beep();
+
+    // turn off green indication, back to red-only column
+    setRowLed(row, false);
+    setButtonsDisabled(false);
+    busy = false;
+  }
+
+  panel.addEventListener("click", function (e) {
+    const target = e.target;
+    if (target && target.classList && target.classList.contains("vote-btn")) {
+      onVote(target);
+    }
+  });
+
+  resetBtn.addEventListener("click", function () {
+    // Stop any ongoing beep by closing/recreating audio context
+    if (audioContext) {
+      try { audioContext.close(); } catch (_) { /* noop */ }
+      audioContext = null;
+    }
+    busy = false;
+    setButtonsDisabled(false);
+    document.querySelectorAll('.led').forEach((l) => l.classList.remove('led--green'));
+  });
+})();
+
+

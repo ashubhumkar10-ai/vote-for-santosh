@@ -1,0 +1,155 @@
+/* Base */
+:root {
+  --bg: #f4f6fb;
+  --device: #e9edf3;
+  --device-edge: #cfd6e2;
+  --device-shadow: rgba(8, 15, 40, .18);
+  --label-slot: #ffffff;
+  --label-border: #dbe3ef;
+  --muted: #5b6b86;
+  --text: #0f172a;
+  --red-led: #d32f2f;
+  --green-led: #22c55e;
+  --button: #1d3b73;
+  --button-dark: #142a52;
+}
+
+* { box-sizing: border-box; }
+
+html, body { height: 100%; }
+
+body {
+  margin: 0;
+  font-family: "Inter", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  background: radial-gradient(1200px 700px at 35% 10%, #eaf0fb 0%, #f3f6fd 50%, #f7f9ff 100%);
+  color: var(--text);
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+/* Device frame */
+.device {
+  width: 100%;
+  max-width: 420px;
+  background: var(--device);
+  border: 1px solid var(--device-edge);
+  border-radius: 10px;
+  box-shadow: 0 16px 40px var(--device-shadow);
+  overflow: hidden;
+}
+
+.device__top,
+.device__bottom {
+  display: grid;
+  grid-template-columns: 24px 1fr 24px;
+  align-items: center;
+  padding: 8px 10px;
+  background: #eef2f8;
+  border-bottom: 1px solid var(--device-edge);
+}
+
+.device__bottom { border-top: 1px solid var(--device-edge); border-bottom: 0; }
+
+.device__title { text-align: center; color: var(--muted); font-size: 12px; }
+
+.device__latch {
+  width: 18px; height: 8px; border-radius: 2px; background: #2e5aa7;
+}
+.device__latch--right { justify-self: end; }
+
+.device__body {
+  display: grid;
+  grid-template-columns: 1fr 32px 72px; /* labels | leds | buttons */
+}
+
+/* Left label slots */
+.labels {
+  display: grid;
+  grid-auto-rows: 42px;
+  background: linear-gradient(#f6f9ff, #f2f6fd);
+  border-right: 1px solid var(--device-edge);
+}
+/* remove pseudo extra row to keep alignment exact */
+
+/* Filled label rows (with name and logo) */
+.label-item { display: grid; grid-template-columns: 26px 1fr; align-items: center; gap: 8px; margin: 0; border-radius: 2px; background: var(--label-slot); border: 1px solid var(--label-border); padding: 4px 6px; height: 100%; box-sizing: border-box; }
+.label-logo { width: 20px; height: 20px; border-radius: 4px; display: grid; place-items: center; background: #eef3fb; box-shadow: inset 0 1px 0 rgba(255,255,255,.7); font-size: 14px; }
+.label-logo svg { width: 16px; height: 16px; display: block; }
+.label-logo img { width: 18px; height: 18px; object-fit: contain; display: block; }
+.label-name { font-size: 12px; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* LED column */
+.leds {
+  display: grid;
+  grid-auto-rows: 42px;
+  align-items: center;
+  justify-items: center;
+  padding: 0;
+  background: #f0f5ff;
+  border-right: 1px solid var(--device-edge);
+}
+.led { width: 10px; height: 10px; border-radius: 50%; background: var(--red-led); box-shadow: inset 0 0 0 1px rgba(0,0,0,.08); }
+.led--green { background: var(--green-led); box-shadow: 0 0 6px rgba(34,197,94,.7), inset 0 0 0 1px rgba(0,0,0,.08); }
+
+/* Buttons column */
+.buttons {
+  display: grid;
+  grid-auto-rows: 42px;
+  align-items: center;
+  justify-items: center;
+  padding: 0;
+}
+
+.vote-btn {
+  appearance: none;
+  border: 0;
+  width: 46px;
+  height: 20px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #234b90 0%, var(--button) 70%, var(--button-dark) 100%);
+  box-shadow: inset 0 2px 0 rgba(255,255,255,.2), 0 2px 3px rgba(0,0,0,.15);
+  cursor: pointer;
+}
+.vote-btn:disabled { opacity: .45; cursor: not-allowed; }
+
+.evm__reset {
+  appearance: none; border: 1px solid var(--device-edge); background: white; color: var(--muted);
+  padding: 6px 10px; border-radius: 6px; cursor: pointer; font-size: 12px;
+}
+.device__controls { text-align: center; font-size: 12px; color: var(--muted); }
+.evm__note { margin-left: 8px; }
+
+/* Visual label slots look */
+.labels > div { border-bottom: 1px solid var(--label-border); background: var(--label-slot); margin: 6px 8px; border-radius: 2px; height: 30px; }
+
+/* Blur effect for first 2 rows */
+.row-blur {
+  filter: blur(3px);
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+@media (max-width: 520px) {
+  body { padding: 12px; }
+  .device {
+    max-width: 100%;
+    border-radius: 8px;
+  }
+  .device__body {
+    grid-template-columns: 1.1fr 28px 64px;
+  }
+  .label-item {
+    grid-template-columns: 22px 1fr;
+    padding: 3px 4px;
+    font-size: 12px;
+  }
+  .label-logo { width: 18px; height: 18px; font-size: 12px; }
+  .label-logo img { width: 16px; height: 16px; }
+  .label-name { font-size: 11px; }
+  .led { width: 8px; height: 8px; }
+  .vote-btn { width: 40px; height: 18px; }
+  .device__controls { font-size: 11px; }
+  .evm__note { display: block; margin: 6px 0 0; }
+}
+
+
